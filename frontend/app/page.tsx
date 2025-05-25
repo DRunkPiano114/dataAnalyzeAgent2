@@ -147,12 +147,30 @@ export default function Home() {
       }
 
       const result = await response.json()
+      console.log('API 响应:', result) // 添加日志以便调试
+
+      // 检查是否有错误
+      if (result.error) {
+        throw new Error(result.error)
+      }
+
+      // 确定AI回复内容的优先级：summary > raw_output > 默认消息
+      let aiContent = ''
+      if (result.summary && result.summary.trim()) {
+        aiContent = result.summary
+      } else if (result.raw_output && result.raw_output.trim()) {
+        aiContent = result.raw_output
+      } else if (result.status === 'error') {
+        aiContent = `抱歉，处理您的请求时出现了问题。${result.error || '请稍后再试。'}`
+      } else {
+        aiContent = '我已经处理了您的请求，但没有生成具体的回复内容。'
+      }
 
       // 添加AI回复
       const aiMessage: ChatMessage = {
         id: `msg_${Date.now()}_ai`,
         role: 'ai',
-        content: result.summary || '分析完成',
+        content: aiContent,
         timestamp: new Date(),
         data: result.data && result.data.length > 0 ? result.data : undefined
       }

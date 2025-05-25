@@ -37,6 +37,7 @@ export default function UploadPage() {
       }
       
       const data = await response.json();
+      console.log('API 响应:', data); // 添加日志以便调试
       
       if (data.error) {
         throw new Error(data.error);
@@ -53,27 +54,38 @@ export default function UploadPage() {
         code: data.code || undefined
       };
       
-      // 构建摘要文本
+      // 构建摘要文本 - 改善逻辑
       let summaryText = '';
       
-      if (data.summary) {
-        // 如果是纯聊天响应（没有分析数据），直接显示摘要
-        if (!data.data && !data.code) {
-          summaryText = data.summary;
+      // 优先使用后端返回的summary
+      if (data.summary && data.summary.trim()) {
+        summaryText = data.summary;
+      } else if (data.raw_output && data.raw_output.trim()) {
+        summaryText = data.raw_output;
+      } else {
+        // 如果没有摘要，根据其他数据构建摘要
+        if (data.code && result.data && result.data.length > 0) {
+          summaryText = `分析完成！生成了Python代码并获得了${result.data.length}行数据结果。`;
+        } else if (data.code) {
+          summaryText = `分析完成！生成了Python代码，但没有返回数据结果。`;
+        } else if (result.data && result.data.length > 0) {
+          summaryText = `分析完成！获得了${result.data.length}行数据结果。`;
         } else {
-          summaryText += `📊 **Analysis Summary:**\n${data.summary}\n\n`;
+          summaryText = '我已经处理了您的请求。';
         }
       }
       
-      if (data.code) {
-        summaryText += `💻 **Generated Code:**\n\`\`\`python\n${data.code}\n\`\`\`\n\n`;
+      // 如果有代码，添加代码显示
+      if (data.code && !summaryText.includes('```python')) {
+        summaryText += `\n\n💻 **生成的代码:**\n\`\`\`python\n${data.code}\n\`\`\``;
       }
       
-      if (result.data && result.data.length > 0) {
-        summaryText += `📋 **Data Results:** ${result.data.length} rows of data (see table below)`;
+      // 如果有数据结果，添加数据说明
+      if (result.data && result.data.length > 0 && !summaryText.includes('数据结果')) {
+        summaryText += `\n\n📊 **数据结果:** ${result.data.length} 行数据 (见下表)`;
       }
       
-      result.summary = summaryText || '✅ Analysis completed successfully.';
+      result.summary = summaryText;
       
       return result;
       
