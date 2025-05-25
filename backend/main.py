@@ -14,13 +14,19 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Data Analysis API", version="1.0.0")
 
-# 配置CORS
+# 配置CORS - 专门为Vercel前端部署优化
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # 生产环境中应限制为具体的域名
+    allow_origins=[
+        "https://*.vercel.app",  # Vercel部署的域名
+        "https://*.vercel.com",  # Vercel自定义域名
+        "https://dataanalyzeagent2.onrender.com",  # 后端自身
+        "*"  # 开发环境兼容
+    ],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # 确保temp_file目录存在

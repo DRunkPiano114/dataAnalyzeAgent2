@@ -125,21 +125,70 @@ npm run dev
 
 ### 常见问题
 
-1. **"Missing optional dependency 'tabulate'"错误**
-   - 确保 `requirements.txt` 中包含 `tabulate==0.9.0`
-   - 重新部署后端服务
+1. **网络连接失败 - "Failed to fetch"**
+   - **问题**: 前端无法连接到后端API
+   - **原因**: 
+     - Render服务可能处于冷启动状态（睡眠模式）
+     - 网络超时
+     - CORS配置问题
+   - **解决方案**:
+     - 等待1-2分钟让Render服务完全启动
+     - 检查后端健康状态：访问 `https://dataanalyzeagent2.onrender.com/health`
+     - 前端会自动重试3次，每次间隔递增
+     - 查看浏览器控制台的详细错误信息
 
-2. **CORS错误**
-   - 检查前端的 `NEXT_PUBLIC_API_URL` 环境变量是否正确
-   - 确保后端CORS配置允许前端域名
+2. **"Missing optional dependency 'tabulate'"错误**
+   - **解决方案**: 确保 `requirements.txt` 中包含 `tabulate==0.9.0`，已在最新版本中修复
 
-3. **文件上传失败**
-   - 检查文件格式是否为CSV或Excel
-   - 确保文件大小不超过限制
+3. **Render服务冷启动问题**
+   - **现象**: 首次访问或长时间未使用后连接失败
+   - **解决方案**: 
+     - 等待30-60秒让服务完全启动
+     - 可以先访问后端健康检查端点预热服务
+     - 考虑升级到Render付费计划避免冷启动
 
-4. **API调用超时**
-   - 检查网络连接
-   - 确认后端服务是否正常运行
+4. **Vercel部署后环境变量未生效**
+   - **检查步骤**:
+     - 确认在Vercel项目设置中添加了 `NEXT_PUBLIC_API_URL`
+     - 变量值应为: `https://dataanalyzeagent2.onrender.com`
+     - 修改环境变量后需要重新部署
+
+5. **CORS错误**
+   - **现象**: 浏览器控制台显示CORS策略错误
+   - **解决方案**: 后端已配置支持Vercel域名，如果仍有问题请检查域名配置
+
+### 部署检查清单
+
+#### Render后端部署
+- [ ] 仓库已连接到Render
+- [ ] 构建命令: `pip install -r backend/requirements.txt`
+- [ ] 启动命令: `cd backend && python main.py`
+- [ ] 环境变量 `OPENAI_API_KEY` 已设置
+- [ ] 服务类型选择 "Web Service"
+- [ ] Python版本: 3.8+
+
+#### Vercel前端部署
+- [ ] 仓库已导入到Vercel
+- [ ] 根目录设置为 `frontend`
+- [ ] 环境变量 `NEXT_PUBLIC_API_URL` 已设置为后端地址
+- [ ] 自动部署已启用
+
+### 测试步骤
+
+1. **后端健康检查**:
+   ```bash
+   curl https://dataanalyzeagent2.onrender.com/health
+   ```
+   应返回: `{"status": "healthy", "temp_dir": "temp_file"}`
+
+2. **前端连接测试**:
+   - 打开前端应用
+   - 查看页面顶部的连接状态指示器
+   - 绿色表示连接正常，红色表示连接失败
+
+3. **功能测试**:
+   - 尝试发送简单消息（无文件）: "你好"
+   - 上传CSV文件并询问: "分析这个数据"
 
 ## 环境变量
 
