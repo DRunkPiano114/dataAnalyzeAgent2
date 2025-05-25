@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  // 后端部署地址
-  BASE_URL: 'https://dataanalyzeagent2.onrender.com',
+  // 后端部署地址 - 支持环境变量
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'https://dataanalyzeagent2.onrender.com',
   
   // Get the full analyze endpoint URL
   getAnalyzeUrl: () => {

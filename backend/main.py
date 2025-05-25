@@ -3,9 +3,14 @@ from typing import List
 import shutil
 import os
 import uuid
+import logging
 from analysis_agent import run_analysis
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+
+# 配置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="AI Data Analysis API", version="1.0.0")
 
@@ -39,15 +44,20 @@ async def analyze_files(
     Returns:
         分析结果的JSON响应
     """
+    logger.info(f"收到分析请求: prompt='{prompt}', session_id='{session_id}', files_count={len(files) if files else 0}")
+    
     try:
         file_paths = []
         
         # 如果没有提供session_id，生成一个新的
         if not session_id:
             session_id = str(uuid.uuid4())
+            logger.info(f"生成新的session_id: {session_id}")
         
         # 如果有文件，处理文件上传
         if files and len(files) > 0 and files[0].filename:  # 检查是否真的有文件
+            logger.info(f"处理 {len(files)} 个文件")
+            
             # 验证文件数量
             if len(files) > 10:  # 限制最大文件数量
                 raise HTTPException(status_code=400, detail="最多支持上传10个文件")
@@ -74,7 +84,9 @@ async def analyze_files(
                     with open(file_path, "wb") as buffer:
                         shutil.copyfileobj(file.file, buffer)
                     file_paths.append(file_path)
+                    logger.info(f"文件保存成功: {file.filename} -> {file_path}")
                 except Exception as e:
+                    logger.error(f"保存文件失败: {file.filename}, 错误: {str(e)}")
                     # 清理已保存的文件
                     for path in file_paths:
                         if os.path.exists(path):
@@ -83,15 +95,18 @@ async def analyze_files(
         
         # 调用分析函数（现在支持空文件列表和会话ID）
         try:
+            logger.info(f"开始分析: files={file_paths}, prompt='{prompt}'")
             analysis_result = run_analysis(file_paths, prompt, session_id)
+            logger.info(f"分析完成: status={analysis_result.get('status', 'unknown')}")
             
             # 分析完成后清理临时文件
             for file_path in file_paths:
                 try:
                     if os.path.exists(file_path):
                         os.remove(file_path)
+                        logger.info(f"临时文件已清理: {file_path}")
                 except Exception as e:
-                    print(f"警告：清理临时文件失败 {file_path}: {e}")
+                    logger.warning(f"清理临时文件失败 {file_path}: {e}")
             
             # 在响应中包含session_id，让前端能够维护会话
             analysis_result["session_id"] = session_id
@@ -99,6 +114,7 @@ async def analyze_files(
             return JSONResponse(content=analysis_result)
             
         except Exception as e:
+            logger.error(f"分析失败: {str(e)}")
             # 发生错误时也要清理文件
             for file_path in file_paths:
                 try:
@@ -111,6 +127,7 @@ async def analyze_files(
     except HTTPException:
         raise
     except Exception as e:
+        logger.error(f"服务器内部错误: {str(e)}")
         raise HTTPException(status_code=500, detail=f"服务器内部错误: {str(e)}")
 
 @app.get("/")
@@ -123,6 +140,12 @@ async def health_check():
     """健康检查端点"""
     return {"status": "healthy", "temp_dir": TEMP_DIR}
 
+@app.get("/test")
+async def test_endpoint():
+    """测试端点"""
+    return {"message": "Test endpoint is working", "timestamp": str(uuid.uuid4())}
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)

@@ -76,10 +76,18 @@ export default function Home() {
 
   // 新建聊天
   const handleNewChat = () => {
+    // 创建新会话
+    const newSession = createNewSession()
+    setCurrentSessionId(newSession.id)
+    setCurrentSessionIdState(newSession.id)
+    
     // 清除当前状态
     setMessages([])
     setUploadedFiles([])
     setIsLoading(false)
+    
+    // 触发侧边栏刷新
+    setSidebarRefreshTrigger(prev => prev + 1)
   }
 
   // 添加文件
@@ -139,11 +147,13 @@ export default function Home() {
       // 使用部署的后端API地址
       const response = await fetch(API_CONFIG.getAnalyzeUrl(), {
         method: 'POST',
-        body: formData
+        body: formData,
+        // 添加超时处理
+        signal: AbortSignal.timeout(60000) // 60秒超时
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`)
       }
 
       const result = await response.json()
@@ -172,7 +182,7 @@ export default function Home() {
         role: 'ai',
         content: aiContent,
         timestamp: new Date(),
-        data: result.data && result.data.length > 0 ? result.data : undefined
+        data: result.data && Array.isArray(result.data) && result.data.length > 0 ? result.data : undefined
       }
 
       const finalMessages = [...newMessages, aiMessage]
@@ -184,11 +194,24 @@ export default function Home() {
     } catch (error) {
       console.error('Error sending message:', error)
       
+      let errorContent = ''
+      if (error instanceof Error) {
+        if (error.name === 'TimeoutError') {
+          errorContent = '请求超时，请检查网络连接或稍后再试'
+        } else if (error.message.includes('Failed to fetch')) {
+          errorContent = '网络连接失败，请检查您的网络连接'
+        } else {
+          errorContent = error.message
+        }
+      } else {
+        errorContent = '未知错误'
+      }
+      
       // 添加错误消息
       const errorMessage: ChatMessage = {
         id: `msg_${Date.now()}_error`,
         role: 'ai',
-        content: `抱歉，发生了错误：${error instanceof Error ? error.message : '未知错误'}`,
+        content: `抱歉，发生了错误：${errorContent}`,
         timestamp: new Date()
       }
 
