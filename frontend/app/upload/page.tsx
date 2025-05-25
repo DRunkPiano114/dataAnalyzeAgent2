@@ -3,6 +3,7 @@
 import React from 'react';
 import { ChatBox } from '@/components/ui/chat-box';
 import { UploadedFile } from '@/components/ui/file-uploader';
+import { API_CONFIG } from '@/utils/config';
 
 export default function UploadPage() {
   const handleSendMessage = async (message: string, files: UploadedFile[]): Promise<{
@@ -24,7 +25,8 @@ export default function UploadPage() {
       // 添加分析指令
       formData.append('prompt', message);
       
-      const response = await fetch('http://localhost:8000/analyze', {
+      // 使用部署的后端API地址
+      const response = await fetch(API_CONFIG.getAnalyzeUrl(), {
         method: 'POST',
         body: formData,
       });

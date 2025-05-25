@@ -13,6 +13,7 @@ import {
   getSessionMessages,
   saveSessionMessages 
 } from '@/utils/chatStorage'
+import { API_CONFIG } from '@/utils/config'
 
 export default function Home() {
   // 会话管理
@@ -135,8 +136,8 @@ export default function Home() {
         formData.append('files', uploadedFile.file)
       })
 
-      // 发送请求
-      const response = await fetch('http://localhost:8000/analyze', {
+      // 使用部署的后端API地址
+      const response = await fetch(API_CONFIG.getAnalyzeUrl(), {
         method: 'POST',
         body: formData
       })
