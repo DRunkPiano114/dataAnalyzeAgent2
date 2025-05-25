@@ -1,0 +1,11 @@
+StudentID,Name,Major,GPA,StudyHoursPerWeek,SatisfactionLevel,GraduationYear,Gender,DateJoined,ClubParticipation
+1001,Alice,Computer Science,3.8,35,High,2025,Female,2021-02-10,Yes
+1002,Bob,Engineering,3.2,20,Medium,2024,Male,2020-07-01,No
+1003,Charlie,Business,2.9,15,Low,2025,Male,2021-01-15,Yes
+1004,David,Mathematics,3.5,40,High,2023,Male,2019-03-22,No
+1005,Eve,Computer Science,3.9,42,,2024,Female,2020-09-09,Yes
+1006,Fay,Biology,2.5,10,Low,2025,Female,2021-06-17,No
+1007,Grace,Business,3.0,25,Medium,2024,Female,2020-12-05,Yes
+1008,Hank,Engineering,2.7,5,Low,2023,Male,2019-11-30,No
+1009,Ivy,Mathematics,3.6,38,High,2025,Female,2021-03-03,Yes
+1010,John,Computer Science,,30,Medium,2024,Male,2020-08-12,No
