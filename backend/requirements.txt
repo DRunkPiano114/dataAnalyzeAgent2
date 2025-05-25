@@ -1,11 +1,37 @@
-fastapi==0.104.1
-uvicorn==0.24.0
-python-multipart==0.0.6
-pandas==2.1.4
-python-dotenv==1.0.0
-langchain==0.1.20
-langchain-openai==0.1.8
-langchain-experimental==0.0.62
-langgraph==0.1.10
-openpyxl==3.1.2
-requests==2.31.0
+# Core FastAPI and web server dependencies
+fastapi==0.115.11
+uvicorn==0.34.1
+python-multipart==0.0.20
+
+# Data processing
+pandas==2.2.3
+
+# AI/ML libraries - LangChain ecosystem
+langchain==0.3.25
+langchain-openai==0.2.14
+langchain-experimental==0.3.4
+langchain-core==0.3.59
+langgraph==0.3.31
+
+# LangGraph checkpointing
+langgraph-checkpoint==2.0.24
+
+# OpenAI API
+openai==1.75.0
+
+# Environment variables
+python-dotenv==1.1.0
+
+# Type hints and validation
+pydantic==2.11.3
+typing-extensions==4.13.2
+
+# Excel file support
+openpyxl==3.1.5
+
+# Development and testing
+requests==2.32.3
+
+# Optional: If you need JSON handling
+# (usually included in Python standard library, but some features may need this)
+# orjson==3.10.16 
