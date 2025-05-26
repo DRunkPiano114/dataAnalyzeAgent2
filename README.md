@@ -1,6 +1,7 @@
 # AI Data Analysis Agent
 
 一个基于AI的数据分析聊天应用，支持上传CSV/Excel文件并进行智能数据分析。
+![在线Demo](https://data-analyze-agent2.vercel.app/)
 
 ## test case
 ![testcase1](assets/images/demo1.png)
