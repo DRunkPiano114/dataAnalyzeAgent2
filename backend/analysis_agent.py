@@ -16,6 +16,32 @@ from langchain_core.messages import (
     trim_messages,
 )
 from langchain_core.messages.utils import count_tokens_approximately
+
+# 数据分析和可视化库
+import numpy as np
+
+# matplotlib设置
+import matplotlib
+matplotlib.use('Agg')  # 使用非交互式后端，适合服务器环境
+import matplotlib.pyplot as plt
+
+# 配置matplotlib中文字体支持
+plt.rcParams['font.sans-serif'] = ['DejaVu Sans', 'Arial', 'SimHei']
+plt.rcParams['axes.unicode_minus'] = False
+
+# 可视化库
+try:
+    import seaborn as sns
+except ImportError:
+    sns = None
+
+try:
+    import plotly.express as px
+    import plotly.graph_objects as go
+except ImportError:
+    px = None
+    go = None
+
 load_dotenv()
 
 # Define the state
@@ -131,15 +157,51 @@ def execute_code_node(state: AgentState) -> AgentState:
         return state
     
     dfs = []
+    failed_files = []
+    
     for file_path in state["file_paths"]:
+        try:
             if file_path.endswith(".csv"):
                 df = pd.read_csv(file_path)
-            elif file_path.endswith(".xlsx"):
+                dfs.append(df)
+            elif file_path.endswith((".xlsx", ".xls")):
                 df = pd.read_excel(file_path)
-            dfs.append(df)
-            
-    exec_env = {"dfs": dfs, "pd": pd}
-
+                dfs.append(df)
+            else:
+                failed_files.append(f"{file_path} (unsupported format)")
+                continue
+                
+        except Exception as e:
+            failed_files.append(f"{file_path} (read error: {str(e)})")
+            continue
+    
+    # 检查是否成功加载了任何文件
+    if len(dfs) == 0:
+        error_msg = "❌ No files could be loaded successfully."
+        if failed_files:
+            error_msg += f" Failed files: {', '.join(failed_files)}"
+        state["error"] = error_msg
+        return state
+    
+    # 如果有失败的文件，记录警告但继续执行
+    if failed_files:
+        print(f"Warning: Some files failed to load: {', '.join(failed_files)}")
+    
+    exec_env = {
+        "dfs": dfs, 
+        "pd": pd,
+        "np": np,
+        "numpy": np,
+        "len": len,
+        "range": range,
+        # 可视化库
+        "plt": plt,
+        "matplotlib": matplotlib,
+        "sns": sns,
+        "px": px,
+        "go": go,
+    }
+    
     try:
         exec(state["exec_code"], exec_env)
 
@@ -156,14 +218,41 @@ def execute_code_node(state: AgentState) -> AgentState:
             df = result.reset_index()
             state["analysis_dataframe_dict"] = df.to_dict(orient="records")
         elif isinstance(result, (tuple, list)):
-            df = pd.DataFrame(result, columns=["value"]) if all(not isinstance(i, (list, tuple, dict)) for i in result) else pd.DataFrame(result)
+            if len(result) == 0:
+                state["analysis_dataframe_dict"] = []
+            elif all(not isinstance(i, (list, tuple, dict)) for i in result):
+                df = pd.DataFrame(result, columns=["value"])
+            else:
+                df = pd.DataFrame(result)
             state["analysis_dataframe_dict"] = df.to_dict(orient="records")
         elif isinstance(result, (int, float, str)):
             df = pd.DataFrame([{"value": result}])
             state["analysis_dataframe_dict"] = df.to_dict(orient="records")
         else:
-            state["error"] = f"❌ Unsupported result type: {type(result)}"
-            return state
+            # 处理matplotlib图表和其他对象
+            try:
+                # 检查是否是matplotlib figure
+                if plt and hasattr(result, 'savefig'):
+                    # 这是一个matplotlib figure，转换为描述
+                    df = pd.DataFrame([{"message": "Visualization chart created successfully", "type": "matplotlib_figure"}])
+                    state["analysis_dataframe_dict"] = df.to_dict(orient="records")
+                elif hasattr(result, '__module__') and 'plotly' in str(result.__module__):
+                    # 这是plotly图表
+                    df = pd.DataFrame([{"message": "Interactive chart created successfully", "type": "plotly_figure"}])
+                    state["analysis_dataframe_dict"] = df.to_dict(orient="records")
+                else:
+                    # 尝试转换为字符串
+                    df = pd.DataFrame([{"value": str(result), "type": str(type(result).__name__)}])
+                    state["analysis_dataframe_dict"] = df.to_dict(orient="records")
+            except Exception as convert_error:
+                state["error"] = f"❌ Unsupported result type: {type(result)}. Conversion error: {str(convert_error)}"
+                return state
+    except IndexError as e:
+        # 专门处理索引错误
+        if "list index out of range" in str(e):
+            state["error"] = f"❌ Index error: Trying to access a list/dataframe index that doesn't exist. Available dataframes: {len(dfs)}. Error: {str(e)}"
+        else:
+            state["error"] = f"❌ Index error: {str(e)}"
     except Exception as e:
         state["error"] = f"❌ Code execution error: {str(e)}"
     return state
@@ -301,19 +390,56 @@ def run_analysis(file_paths: List[str], prompt: str, session_id: str = None) -> 
             2. **General Conversation**: Have friendly conversations on any topic and remember our previous discussion context.
 
             For data analysis tasks:
-            - Assume DataFrames are available as dfs = [dfs[0], dfs[1], dfs[2] ...] 
-            - Use `dfs[i]` to indicate which DataFrame you're working with
-            - The last line must assign a DataFrame to a variable named `result`
+            - DataFrames are available as dfs = [dfs[0], dfs[1], dfs[2] ...] 
+            - ALWAYS check if the index exists before accessing: use len(dfs) to check how many files are available
+            - Use `dfs[i]` only after verifying i < len(dfs)
+            - The last line must assign a DataFrame/value to a variable named `result`
             - Do NOT execute code, just generate it
+            - Handle edge cases like empty datasets gracefully
+            
+            **Available Libraries**:
+            - pandas (pd): Data manipulation and analysis
+            - matplotlib.pyplot (plt): Statistical plotting 
+            - seaborn (sns): Statistical data visualization
+            - plotly.express (px): Interactive plots
+            - plotly.graph_objects (go): Custom interactive plots
+            - numpy (np): Numerical computing (if needed)
 
             For general conversation:
             - Be friendly, helpful, and maintain context from our conversation history
             - Remember user preferences and previous topics we've discussed
 
-            Example data analysis:
+            Example data analysis with safety checks:
             ```python
-            # Show students with low satisfaction from the first CSV
-            result = dfs[0][dfs[0]['Satisfaction'] == 'Low']
+            # Safe way to access dataframes
+            if len(dfs) > 0:
+                # Show first 5 rows of first dataset
+                result = dfs[0].head()
+            else:
+                result = pd.DataFrame({'message': ['No data available']})
+            ```
+
+            ```python
+            # Multiple file analysis with safety
+            if len(dfs) >= 2:
+                # Compare two datasets
+                result = pd.concat([dfs[0].head(), dfs[1].head()], keys=['File1', 'File2'])
+            elif len(dfs) == 1:
+                result = dfs[0].describe()
+            else:
+                result = pd.DataFrame({'error': ['No files provided']})
+            ```
+            
+            ```python
+            # Creating visualizations (example)
+            if len(dfs) > 0 and not dfs[0].empty:
+                # Create a simple plot
+                plt.figure(figsize=(10, 6))
+                dfs[0].hist()
+                plt.title('Data Distribution')
+                result = plt.gcf()  # Get current figure
+            else:
+                result = pd.DataFrame({'message': ['No data to visualize']})
             ```
 
             I'm ready to help with both data analysis and general conversation!"""
