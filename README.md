@@ -2,6 +2,13 @@
 
 一个基于AI的数据分析聊天应用，支持上传CSV/Excel文件并进行智能数据分析。
 
+## test case
+![testcase1](assets/images/demo1.png)
+![testcase2](assets/images/demo3.png)
+
+## graph可视化
+![graph可视化](assets/images/visualized_graph.png)
+
 ## 功能特性
 
 - 📊 支持CSV和Excel文件上传
