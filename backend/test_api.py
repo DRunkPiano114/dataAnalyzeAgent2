@@ -49,26 +49,28 @@ def test_analyze_api(base_url):
 产品C,80000,东方
 产品D,120000,西方"""
 
+    my_test_data1 = open("/Users/paulwu/Desktop/student_feedback.csv", "r", encoding="utf-8").read()
+    my_test_data2 = open("/Users/paulwu/Desktop/students_csv.csv", "r", encoding="utf-8").read()
     # 创建临时测试文件
-    with open("test_employees.csv", "w", encoding="utf-8") as f:
-        f.write(test_data1)
+    with open("test_student_feedback.csv", "w", encoding="utf-8") as f:
+        f.write(my_test_data1)
     
-    with open("test_sales.csv", "w", encoding="utf-8") as f:
-        f.write(test_data2)
+    with open("test_students.csv", "w", encoding="utf-8") as f:
+        f.write(my_test_data2)
     
     try:
         # 准备文件上传
         files = [
-            ('files', ('test_employees.csv', open('test_employees.csv', 'rb'), 'text/csv')),
-            ('files', ('test_sales.csv', open('test_sales.csv', 'rb'), 'text/csv')),
+            ('files', ('test_student_feedback.csv', open('test_student_feedback.csv', 'rb'), 'text/csv')),
+            ('files', ('test_students.csv', open('test_students.csv', 'rb'), 'text/csv')),
         ]
         
         data = {
-            'prompt': '请分析这两个数据表，展示salary大于一万的人'
+            'prompt': 'show students who do math'
         }
         
         print("发送请求到:", url)
-        print("上传文件: test_employees.csv, test_sales.csv")
+        print("上传文件: test_student_feedback.csv, test_students.csv")
         print("分析指令:", data['prompt'])
         print("-" * 50)
         
@@ -101,7 +103,7 @@ def test_analyze_api(base_url):
     
     finally:
         # 清理测试文件
-        for file in ["test_employees.csv", "test_sales.csv"]:
+        for file in ["test_student_feedback.csv", "test_students.csv"]:
             if os.path.exists(file):
                 os.remove(file)
                 print(f"清理测试文件: {file}")

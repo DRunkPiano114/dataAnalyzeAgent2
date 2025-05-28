@@ -384,7 +384,10 @@ def run_analysis(file_paths: List[str], prompt: str, session_id: str = None) -> 
 
             For data analysis tasks:
             - Assume DataFrames are available as dfs = [dfs[0], dfs[1], dfs[2] ...] 
-            - Use `dfs[i]` to indicate which DataFrame you're working with
+            - IMPORTANT: DataFrames are ONLY available as a list: dfs = [dfs[0], dfs[1], dfs[2], ...]
+            - ALWAYS use dfs[0] for the first DataFrame, dfs[1] for the second, etc.
+            - NEVER use variable names like 'df', 'data', 'dataset' - these are NOT defined
+            - ONLY use dfs[0], dfs[1], dfs[2], etc. to reference DataFrames
             - The last line MUST assign a meaningful result to a variable named `result`
             - `result` should contain actual data: DataFrame, Series, list, dict, or single value
             - NEVER set result = None
@@ -395,23 +398,38 @@ def run_analysis(file_paths: List[str], prompt: str, session_id: str = None) -> 
             - Be friendly, helpful, and maintain context from our conversation history
             - Remember user preferences and previous topics we've discussed
 
-            Example data analysis:
+            CORRECT Examples for data analysis:
             ```python
-            # Show top 3 highest salaries
+            # Show top 3 highest salaries from first DataFrame
             result = dfs[0].nlargest(3, 'Salary')
             ```
 
             ```python
-            # Calculate summary statistics
-            result = dfs[0]['Salary'].describe()
+            # Calculate summary statistics from second DataFrame
+            result = dfs[1]['Salary'].describe()
             ```
 
             ```python
-            # Group and aggregate data
-            result = dfs[0].groupby('Category')['Value'].sum()
+            # Group and aggregate data from third DataFrame
+            result = dfs[2].groupby('Category')['Value'].sum()
             ```
 
-            Always return meaningful data that answers the user's question!"""
+            ```python
+            # Work with multiple DataFrames
+            merged_data = pd.concat([dfs[0], dfs[1]], ignore_index=True)
+            result = merged_data.groupby('Type').count()
+            ```
+
+            WRONG Examples (DO NOT USE):
+            ```python
+            # ❌ WRONG - 'df' is not defined
+            result = df.head()
+            
+            # ❌ WRONG - 'data' is not defined  
+            result = data.describe()
+            ```
+
+            Remember: ONLY use dfs[0], dfs[1], etc. - no other DataFrame variable names exist!"""
             
             state["history_messages"] = [SystemMessage(system_prompt)]
         
