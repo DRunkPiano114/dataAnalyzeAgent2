@@ -149,18 +149,100 @@ def execute_code_node(state: AgentState) -> AgentState:
 
         result = exec_env["result"]
 
+        # 清理数据的辅助函数
+        def clean_dataframe_for_json(df):
+            """清理DataFrame中的无穷大值和NaN值，使其能够正确序列化为JSON"""
+            try:
+                df_cleaned = df.copy()
+                # 只对数值列进行清理
+                numeric_columns = df_cleaned.select_dtypes(include=[float, int]).columns
+                for col in numeric_columns:
+                    # 替换无穷大值
+                    df_cleaned[col] = df_cleaned[col].replace([float('inf'), float('-inf')], None)
+                    # 替换NaN值
+                    df_cleaned[col] = df_cleaned[col].where(pd.notna(df_cleaned[col]), None)
+                return df_cleaned
+            except Exception as e:
+                # 如果清理失败，返回原始DataFrame并用fillna处理
+                return df.fillna("N/A")
+        
         # deal with different types of result
         if isinstance(result, pd.DataFrame):
-            state["analysis_dataframe_dict"] = result.to_dict(orient="records")
+            cleaned_df = clean_dataframe_for_json(result)
+            state["analysis_dataframe_dict"] = cleaned_df.to_dict(orient="records")
         elif isinstance(result, pd.Series):
             df = result.reset_index()
-            state["analysis_dataframe_dict"] = df.to_dict(orient="records")
+            cleaned_df = clean_dataframe_for_json(df)
+            state["analysis_dataframe_dict"] = cleaned_df.to_dict(orient="records")
+        elif isinstance(result, dict):
+            # 处理字典类型的结果
+            try:
+                # 检查字典中是否包含DataFrame或Series对象
+                flattened_data = []
+                for key, value in result.items():
+                    if isinstance(value, pd.DataFrame):
+                        # 如果值是DataFrame，将其转换为记录格式并标记类别
+                        df_records = value.to_dict(orient="records")
+                        for i, record in enumerate(df_records):
+                            for col, cell_value in record.items():
+                                flattened_data.append({
+                                    "category": str(key),
+                                    "metric": str(col),
+                                    "value": cell_value
+                                })
+                    elif isinstance(value, pd.Series):
+                        # 如果值是Series，展平它
+                        for idx, val in value.items():
+                            flattened_data.append({
+                                "category": str(key),
+                                "metric": str(idx),
+                                "value": val
+                            })
+                    else:
+                        # 简单值
+                        flattened_data.append({
+                            "category": str(key),
+                            "metric": "value",
+                            "value": value
+                        })
+                
+                if flattened_data:
+                    df = pd.DataFrame(flattened_data)
+                    cleaned_df = clean_dataframe_for_json(df)
+                    state["analysis_dataframe_dict"] = cleaned_df.to_dict(orient="records")
+                else:
+                    # 如果展平失败，尝试直接转换
+                    df = pd.DataFrame([{str(k): str(v) for k, v in result.items()}])
+                    cleaned_df = clean_dataframe_for_json(df)
+                    state["analysis_dataframe_dict"] = cleaned_df.to_dict(orient="records")
+            except Exception as e:
+                # 如果都失败了，创建键值对的表格
+                df = pd.DataFrame([{"Key": str(k), "Value": str(v)} for k, v in result.items()])
+                state["analysis_dataframe_dict"] = df.to_dict(orient="records")
         elif isinstance(result, (tuple, list)):
-            df = pd.DataFrame(result, columns=["value"]) if all(not isinstance(i, (list, tuple, dict)) for i in result) else pd.DataFrame(result)
-            state["analysis_dataframe_dict"] = df.to_dict(orient="records")
+            try:
+                # 尝试创建DataFrame
+                if all(not isinstance(i, (list, tuple, dict)) for i in result):
+                    # 简单值列表
+                    df = pd.DataFrame(result, columns=["value"])
+                else:
+                    # 复杂结构
+                    df = pd.DataFrame(result)
+                cleaned_df = clean_dataframe_for_json(df)
+                state["analysis_dataframe_dict"] = cleaned_df.to_dict(orient="records")
+            except Exception as e:
+                # 如果创建DataFrame失败，转换为简单的键值对
+                df = pd.DataFrame([{"index": i, "value": str(v)} for i, v in enumerate(result)])
+                state["analysis_dataframe_dict"] = df.to_dict(orient="records")
         elif isinstance(result, (int, float, str)):
+            # 处理单个值的情况，检查是否为无穷大或NaN
+            if isinstance(result, float) and (pd.isna(result) or pd.isinf(result)):
+                result = None
             df = pd.DataFrame([{"value": result}])
             state["analysis_dataframe_dict"] = df.to_dict(orient="records")
+        elif result is None:
+            # 处理None结果，可能是可视化代码没有返回数据
+            state["analysis_dataframe_dict"] = [{"message": "分析完成，结果已通过图表显示"}]
         else:
             state["error"] = f"❌ Unsupported result type: {type(result)}"
             return state
@@ -303,7 +385,10 @@ def run_analysis(file_paths: List[str], prompt: str, session_id: str = None) -> 
             For data analysis tasks:
             - Assume DataFrames are available as dfs = [dfs[0], dfs[1], dfs[2] ...] 
             - Use `dfs[i]` to indicate which DataFrame you're working with
-            - The last line must assign a DataFrame to a variable named `result`
+            - The last line MUST assign a meaningful result to a variable named `result`
+            - `result` should contain actual data: DataFrame, Series, list, dict, or single value
+            - NEVER set result = None
+            - Always return actual data that answers the user's question
             - Do NOT execute code, just generate it
 
             For general conversation:
@@ -312,11 +397,21 @@ def run_analysis(file_paths: List[str], prompt: str, session_id: str = None) -> 
 
             Example data analysis:
             ```python
-            # Show students with low satisfaction from the first CSV
-            result = dfs[0][dfs[0]['Satisfaction'] == 'Low']
+            # Show top 3 highest salaries
+            result = dfs[0].nlargest(3, 'Salary')
             ```
 
-            I'm ready to help with both data analysis and general conversation!"""
+            ```python
+            # Calculate summary statistics
+            result = dfs[0]['Salary'].describe()
+            ```
+
+            ```python
+            # Group and aggregate data
+            result = dfs[0].groupby('Category')['Value'].sum()
+            ```
+
+            Always return meaningful data that answers the user's question!"""
             
             state["history_messages"] = [SystemMessage(system_prompt)]
         
