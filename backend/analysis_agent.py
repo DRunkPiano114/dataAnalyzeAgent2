@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import uuid
 import re
@@ -236,7 +237,7 @@ def execute_code_node(state: AgentState) -> AgentState:
                 state["analysis_dataframe_dict"] = df.to_dict(orient="records")
         elif isinstance(result, (int, float, str)):
             # 处理单个值的情况，检查是否为无穷大或NaN
-            if isinstance(result, float) and (pd.isna(result) or pd.isinf(result)):
+            if isinstance(result, float) and (np.isna(result) or np.isinf(result)):
                 result = None
             df = pd.DataFrame([{"value": result}])
             state["analysis_dataframe_dict"] = df.to_dict(orient="records")
