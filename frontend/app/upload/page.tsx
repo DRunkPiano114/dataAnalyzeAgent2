@@ -37,7 +37,7 @@ export default function UploadPage() {
       }
       
       const data = await response.json();
-      console.log('API 响应:', data); // 添加日志以便调试
+      console.log('API response:', data); // log for debugging
       
       if (data.error) {
         throw new Error(data.error);
@@ -54,35 +54,35 @@ export default function UploadPage() {
         code: data.code || undefined
       };
       
-      // 构建摘要文本 - 改善逻辑
+      // Build summary text
       let summaryText = '';
       
-      // 优先使用后端返回的summary
+      // Prefer the summary returned by the backend
       if (data.summary && data.summary.trim()) {
         summaryText = data.summary;
       } else if (data.raw_output && data.raw_output.trim()) {
         summaryText = data.raw_output;
       } else {
-        // 如果没有摘要，根据其他数据构建摘要
+        // If no summary is provided, build one from other data
         if (data.code && result.data && result.data.length > 0) {
-          summaryText = `分析完成！生成了Python代码并获得了${result.data.length}行数据结果。`;
+          summaryText = `Analysis complete! Generated Python code and obtained ${result.data.length} rows of data.`;
         } else if (data.code) {
-          summaryText = `分析完成！生成了Python代码，但没有返回数据结果。`;
+          summaryText = `Analysis complete! Generated Python code but no data was returned.`;
         } else if (result.data && result.data.length > 0) {
-          summaryText = `分析完成！获得了${result.data.length}行数据结果。`;
+          summaryText = `Analysis complete! Obtained ${result.data.length} rows of data.`;
         } else {
-          summaryText = '我已经处理了您的请求。';
+          summaryText = 'Your request has been processed.';
         }
       }
       
-      // 如果有代码，添加代码显示
+      // Include code if present
       if (data.code && !summaryText.includes('```python')) {
-        summaryText += `\n\n💻 **生成的代码:**\n\`\`\`python\n${data.code}\n\`\`\``;
+        summaryText += `\n\n💻 **Generated Code:**\n\`\`\`python\n${data.code}\n\`\`\``;
       }
       
-      // 如果有数据结果，添加数据说明
-      if (result.data && result.data.length > 0 && !summaryText.includes('数据结果')) {
-        summaryText += `\n\n📊 **数据结果:** ${result.data.length} 行数据 (见下表)`;
+      // Include data info if present
+      if (result.data && result.data.length > 0 && !summaryText.includes('Data Result')) {
+        summaryText += `\n\n📊 **Data Result:** ${result.data.length} rows (see table below)`;
       }
       
       result.summary = summaryText;
