@@ -1,45 +1,45 @@
 # AI Data Analysis Agent
 
-一个基于AI的数据分析聊天应用，支持上传CSV/Excel文件并进行智能数据分析。
+An AI-powered chat application for data analysis. Upload CSV or Excel files and get intelligent insights.
 
-## [在线Demo](https://data-analyze-agent2.vercel.app/)
+## [Online Demo](https://data-analyze-agent2.vercel.app/)
 
 ## test case
 ![testcase1](assets/images/demo1.png)
 ![testcase2](assets/images/demo3.png)
 
-## graph可视化
-![graph可视化](assets/images/visualized_graph.png)
+## Graph Visualization
+![Graph Visualization](assets/images/visualized_graph.png)
 
-## 功能特性
+## Features
 
-- 📊 支持CSV和Excel文件上传
-- 🤖 AI驱动的数据分析和查询
-- 💬 对话式交互界面
-- 📈 数据可视化（图表展示）
-- 💾 会话历史记录
-- 📱 响应式设计，支持移动端
+- 📊 Upload CSV and Excel files
+- 🤖 AI-driven data analysis and querying
+- 💬 Conversational interface
+- 📈 Data visualization (charts)
+- 💾 Conversation history
+- 📱 Responsive design with mobile support
 
-## 技术栈
+## Tech Stack
 
-### 后端
-- FastAPI - Web框架
-- LangChain - AI代理框架
-- Pandas - 数据处理
-- OpenAI GPT - 语言模型
+### Backend
+- FastAPI - Web framework
+- LangChain - AI agent framework
+- Pandas - data processing
+- OpenAI GPT - language model
 - Python 3.8+
 
-### 前端
-- Next.js 14 - React框架
-- TypeScript - 类型安全
-- Tailwind CSS - 样式框架
-- Recharts - 数据可视化
+### Frontend
+- Next.js 14 - React framework
+- TypeScript - type safety
+- Tailwind CSS - styling framework
+- Recharts - data visualization
 
-## 部署说明
+## Deployment
 
-### 后端部署 (Render)
+### Backend Deployment (Render)
 
-1. 确保 `backend/requirements.txt` 包含所有依赖：
+1. Ensure `backend/requirements.txt` includes all dependencies:
 ```txt
 fastapi==0.115.11
 uvicorn==0.34.1
@@ -60,157 +60,157 @@ openpyxl==3.1.5
 requests==2.32.3
 ```
 
-2. 在Render上创建新的Web Service
-3. 连接GitHub仓库
-4. 设置构建命令：`pip install -r backend/requirements.txt`
-5. 设置启动命令：`cd backend && python main.py`
-6. 添加环境变量：
-   - `OPENAI_API_KEY`: 你的OpenAI API密钥
+2. Create a new Web Service on Render
+3. Connect the GitHub repository
+4. Set the build command: `pip install -r backend/requirements.txt`
+5. Set the start command: `cd backend && python main.py`
+6. Add an environment variable:
+   - `OPENAI_API_KEY`: your OpenAI API key
 
-### 前端部署 (Vercel)
+### Frontend Deployment (Vercel)
 
-1. 在Vercel上导入GitHub仓库
-2. 设置根目录为 `frontend`
-3. 添加环境变量：
-   - `NEXT_PUBLIC_API_URL`: 后端API地址 (例如: https://your-backend.onrender.com)
+1. Import the GitHub repository in Vercel
+2. Set the root directory to `frontend`
+3. Add an environment variable:
+   - `NEXT_PUBLIC_API_URL`: backend API URL (e.g. https://your-backend.onrender.com)
 
-## 本地开发
+## Local Development
 
-### 后端设置
+### Backend Setup
 
-1. 进入后端目录：
+1. Enter the backend directory:
 ```bash
 cd backend
 ```
 
-2. 安装依赖：
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. 创建 `.env` 文件：
+3. Create a `.env` file:
 ```env
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-4. 启动服务器：
+4. Start the server:
 ```bash
 python main.py
 ```
 
-### 前端设置
+### Frontend Setup
 
-1. 进入前端目录：
+1. Enter the frontend directory:
 ```bash
 cd frontend
 ```
 
-2. 安装依赖：
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. 创建 `.env.local` 文件：
+3. Create a `.env.local` file:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8000
 ```
 
-4. 启动开发服务器：
+4. Start the development server:
 ```bash
 npm run dev
 ```
 
-## 使用方法
+## Usage
 
-1. 访问前端应用
-2. 点击"Add files"上传CSV或Excel文件
-3. 在聊天框中输入你的问题，例如：
-   - "分析这个数据集的基本统计信息"
-   - "找出销售额最高的前10个产品"
-   - "显示按月份分组的趋势"
-4. AI将分析数据并提供结果和可视化图表
+1. Open the frontend application
+2. Click "Add files" to upload CSV or Excel files
+3. Type your question in the chat box, for example:
+   - "Analyze the basic statistics of this dataset"
+   - "Find the top 10 products by sales"
+   - "Show the monthly trend"
+4. The AI analyzes the data and returns results with charts
 
-## 故障排除
+## Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **网络连接失败 - "Failed to fetch"**
-   - **问题**: 前端无法连接到后端API
-   - **原因**: 
-     - Render服务可能处于冷启动状态（睡眠模式）
-     - 网络超时
-     - CORS配置问题
-   - **解决方案**:
-     - 等待1-2分钟让Render服务完全启动
-     - 检查后端健康状态：访问 `https://dataanalyzeagent2.onrender.com/health`
-     - 前端会自动重试3次，每次间隔递增
-     - 查看浏览器控制台的详细错误信息
+1. **Network error - "Failed to fetch"**
+   - **Problem**: the frontend cannot reach the backend API
+   - **Possible causes:**
+     - The Render service is waking up (cold start)
+     - Network timeout
+     - CORS configuration issues
+   - **Solutions:**
+     - Wait 1–2 minutes for the Render service to fully start
+     - Check backend health at `https://dataanalyzeagent2.onrender.com/health`
+     - The frontend will automatically retry three times with increasing intervals
+     - Inspect the browser console for detailed errors
 
-2. **"Missing optional dependency 'tabulate'"错误**
-   - **解决方案**: 确保 `requirements.txt` 中包含 `tabulate==0.9.0`，已在最新版本中修复
+2. **"Missing optional dependency 'tabulate'" error**
+   - **Solution**: ensure `requirements.txt` includes `tabulate==0.9.0`; this is fixed in the latest version
 
-3. **Render服务冷启动问题**
-   - **现象**: 首次访问或长时间未使用后连接失败
-   - **解决方案**: 
-     - 等待30-60秒让服务完全启动
-     - 可以先访问后端健康检查端点预热服务
-     - 考虑升级到Render付费计划避免冷启动
+3. **Render cold start issues**
+   - **Symptom**: connection fails on first visit or after long inactivity
+   - **Solutions:**
+     - Wait 30–60 seconds for the service to start
+     - Hit the backend health endpoint to warm up the service
+     - Consider upgrading to a paid Render plan to avoid cold starts
 
-4. **Vercel部署后环境变量未生效**
-   - **检查步骤**:
-     - 确认在Vercel项目设置中添加了 `NEXT_PUBLIC_API_URL`
-     - 变量值应为: `https://dataanalyzeagent2.onrender.com`
-     - 修改环境变量后需要重新部署
+4. **Environment variables not applied on Vercel**
+   - **Check:**
+     - Make sure `NEXT_PUBLIC_API_URL` is added in the Vercel project settings
+     - The value should be `https://dataanalyzeagent2.onrender.com`
+     - Redeploy after changing environment variables
 
-5. **CORS错误**
-   - **现象**: 浏览器控制台显示CORS策略错误
-   - **解决方案**: 后端已配置支持Vercel域名，如果仍有问题请检查域名配置
+5. **CORS errors**
+   - **Symptom**: the browser console shows a CORS policy error
+   - **Solution**: the backend is configured to allow the Vercel domain; check domain settings if issues persist
 
-### 部署检查清单
+### Deployment Checklist
 
-#### Render后端部署
-- [ ] 仓库已连接到Render
-- [ ] 构建命令: `pip install -r backend/requirements.txt`
-- [ ] 启动命令: `cd backend && python main.py`
-- [ ] 环境变量 `OPENAI_API_KEY` 已设置
-- [ ] 服务类型选择 "Web Service"
-- [ ] Python版本: 3.8+
+#### Render Backend Deployment
+- [ ] Repository connected to Render
+- [ ] Build command: `pip install -r backend/requirements.txt`
+- [ ] Start command: `cd backend && python main.py`
+- [ ] Environment variable `OPENAI_API_KEY` set
+- [ ] Service type "Web Service"
+- [ ] Python version 3.8+
 
-#### Vercel前端部署
-- [ ] 仓库已导入到Vercel
-- [ ] 根目录设置为 `frontend`
-- [ ] 环境变量 `NEXT_PUBLIC_API_URL` 已设置为后端地址
-- [ ] 自动部署已启用
+#### Vercel Frontend Deployment
+- [ ] Repository imported into Vercel
+- [ ] Root directory set to `frontend`
+- [ ] Environment variable `NEXT_PUBLIC_API_URL` set to backend URL
+- [ ] Automatic deployments enabled
 
-### 测试步骤
+### Testing Steps
 
-1. **后端健康检查**:
+1. **Backend health check:**
    ```bash
    curl https://dataanalyzeagent2.onrender.com/health
    ```
-   应返回: `{"status": "healthy", "temp_dir": "temp_file"}`
+   Should return: `{"status": "healthy", "temp_dir": "temp_file"}`
 
-2. **前端连接测试**:
-   - 打开前端应用
-   - 查看页面顶部的连接状态指示器
-   - 绿色表示连接正常，红色表示连接失败
+2. **Frontend connection test:**
+   - Open the frontend application
+   - Check the connection status indicator at the top of the page
+   - Green means connected, red means failed
 
-3. **功能测试**:
-   - 尝试发送简单消息（无文件）: "你好"
-   - 上传CSV文件并询问: "分析这个数据"
+3. **Functional test:**
+   - Try sending a simple message without files: "Hello"
+   - Upload a CSV file and ask: "Analyze this data"
 
-## 环境变量
+## Environment Variables
 
-### 后端
-- `OPENAI_API_KEY`: OpenAI API密钥（必需）
+### Backend
+- `OPENAI_API_KEY`: OpenAI API key (required)
 
-### 前端
-- `NEXT_PUBLIC_API_URL`: 后端API地址（必需）
+### Frontend
+- `NEXT_PUBLIC_API_URL`: backend API URL (required)
 
-## 许可证
+## License
 
 MIT License
 
-## 贡献
+## Contributing
 
-欢迎提交Issue和Pull Request！ 
+Contributions via Issues and Pull Requests are welcome!

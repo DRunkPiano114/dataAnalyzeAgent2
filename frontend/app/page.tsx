@@ -140,7 +140,7 @@ export default function Home() {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
-        console.log(`尝试发送请求 (${attempt}/${maxRetries})...`)
+        console.log(`Attempting request (${attempt}/${maxRetries})...`)
         
         // 准备请求数据
         const formData = new FormData()
@@ -154,7 +154,7 @@ export default function Home() {
 
         // 使用fetch with timeout
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), 60000) // 60秒超时
+        const timeoutId = setTimeout(() => controller.abort(), 60000) // 60s timeout
 
         const response = await fetch(API_CONFIG.getAnalyzeUrl(), {
           method: 'POST',
@@ -169,7 +169,7 @@ export default function Home() {
         }
 
         const result = await response.json()
-        console.log('API 响应成功:', result)
+        console.log('API response success:', result)
 
         // 检查是否有错误
         if (result.error) {
@@ -183,9 +183,9 @@ export default function Home() {
         } else if (result.raw_output && result.raw_output.trim()) {
           aiContent = result.raw_output
         } else if (result.status === 'error') {
-          aiContent = `抱歉，处理您的请求时出现了问题。${result.error || '请稍后再试。'}`
+          aiContent = `Sorry, there was a problem processing your request. ${result.error || 'Please try again later.'}`
         } else {
-          aiContent = '我已经处理了您的请求，但没有生成具体的回复内容。'
+          aiContent = 'I processed your request but did not generate a specific reply.'
         }
 
         // 添加AI回复
@@ -208,11 +208,11 @@ export default function Home() {
 
       } catch (error) {
         lastError = error as Error
-        console.error(`请求失败 (尝试 ${attempt}/${maxRetries}):`, error)
+        console.error(`Request failed (attempt ${attempt}/${maxRetries}):`, error)
         
         // 如果不是最后一次尝试，等待后重试
         if (attempt < maxRetries) {
-          console.log(`等待 ${attempt * 2} 秒后重试...`)
+          console.log(`Waiting ${attempt * 2} seconds before retrying...`)
           await new Promise(resolve => setTimeout(resolve, attempt * 2000))
           continue
         }
@@ -221,23 +221,23 @@ export default function Home() {
         let errorContent = ''
         if (lastError) {
           if (lastError.name === 'AbortError') {
-            errorContent = '请求超时，服务器可能正在启动中，请稍后再试'
+              errorContent = 'Request timed out, the server may be starting. Please try again later.'
           } else if (lastError.message.includes('Failed to fetch') || lastError.message.includes('NetworkError')) {
-            errorContent = '网络连接失败，请检查网络连接或稍后再试'
+              errorContent = 'Network connection failed. Please check your connection or try again later.'
           } else if (lastError.message.includes('HTTP 5')) {
-            errorContent = '服务器内部错误，请稍后再试'
+              errorContent = 'Internal server error. Please try again later.'
           } else {
             errorContent = lastError.message
           }
         } else {
-          errorContent = '未知错误'
+            errorContent = 'Unknown error'
         }
         
         // 添加错误消息
         const errorMessage: ChatMessage = {
           id: `msg_${Date.now()}_error`,
           role: 'ai',
-          content: `抱歉，发生了错误：${errorContent}${maxRetries > 1 ? `\n\n已尝试 ${maxRetries} 次，如果问题持续存在，请检查后端服务是否正常运行。` : ''}`,
+          content: `Sorry, an error occurred: ${errorContent}${maxRetries > 1 ? `\n\nTried ${maxRetries} times. If the issue persists, please check whether the backend service is running.` : ''}`,
           timestamp: new Date()
         }
 

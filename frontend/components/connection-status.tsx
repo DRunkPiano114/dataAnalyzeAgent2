@@ -53,12 +53,12 @@ export function ConnectionStatus() {
 
   const getStatusText = () => {
     switch (status) {
-      case 'connected':
-        return '后端连接正常';
-      case 'disconnected':
-        return '后端连接失败';
-      case 'checking':
-        return '检查连接中...';
+        case 'connected':
+          return 'Backend connected';
+        case 'disconnected':
+          return 'Backend connection failed';
+        case 'checking':
+          return 'Checking connection...';
     }
   };
 
@@ -83,12 +83,12 @@ export function ConnectionStatus() {
         </span>
       )}
       {status === 'disconnected' && (
-        <button
-          onClick={checkConnection}
-          className="ml-2 px-2 py-1 bg-red-100 hover:bg-red-200 rounded text-red-700 transition-colors"
-        >
-          重试
-        </button>
+          <button
+            onClick={checkConnection}
+            className="ml-2 px-2 py-1 bg-red-100 hover:bg-red-200 rounded text-red-700 transition-colors"
+          >
+            Retry
+          </button>
       )}
     </div>
   );

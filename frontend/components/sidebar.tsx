@@ -95,7 +95,7 @@ export default function Sidebar({
   const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (window.confirm('确定要删除这个聊天吗？')) {
+    if (window.confirm('Are you sure you want to delete this chat?')) {
       deleteSession(sessionId);
       setSessions(prev => prev.filter(s => s.id !== sessionId));
       
@@ -114,17 +114,17 @@ export default function Sidebar({
     const diffDays = diffHours / 24;
 
     if (diffMinutes < 1) {
-      return '刚刚';
+      return 'just now';
     } else if (diffMinutes < 60) {
-      return `${Math.floor(diffMinutes)}分钟前`;
+      return `${Math.floor(diffMinutes)} minutes ago`;
     } else if (diffHours < 24) {
-      return `${Math.floor(diffHours)}小时前`;
+      return `${Math.floor(diffHours)} hours ago`;
     } else if (diffDays < 7) {
-      return `${Math.floor(diffDays)}天前`;
+      return `${Math.floor(diffDays)} days ago`;
     } else if (diffDays < 30) {
-      return `${Math.floor(diffDays / 7)}周前`;
+      return `${Math.floor(diffDays / 7)} weeks ago`;
     } else {
-      return date.toLocaleDateString('zh-CN', {
+      return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'numeric',
         day: 'numeric'
@@ -172,7 +172,7 @@ export default function Sidebar({
       `}>
         {/* 头部 */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-lg font-semibold">聊天记录</h2>
+          <h2 className="text-lg font-semibold">Chat History</h2>
           {isMobile && (
             <button
               onClick={() => setIsCollapsed(true)}
@@ -190,7 +190,7 @@ export default function Sidebar({
             className="w-full flex items-center gap-3 px-4 py-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors group"
           >
             <PlusIcon className="h-5 w-5" />
-            <span>新建聊天</span>
+            <span>New Chat</span>
           </button>
         </div>
 
@@ -199,8 +199,8 @@ export default function Sidebar({
           {sessions.length === 0 ? (
             <div className="p-4 text-center text-gray-400">
               <ChatBubbleLeftRightIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-              <p>还没有聊天记录</p>
-              <p className="text-sm mt-1">开始你的第一个对话吧</p>
+              <p>No chat history yet</p>
+              <p className="text-sm mt-1">Start your first conversation</p>
             </div>
           ) : (
             <div className="p-2 space-y-1">
@@ -229,7 +229,7 @@ export default function Sidebar({
                       <div className="flex items-center gap-2 text-xs text-gray-500">
                         <span>{formatDate(session.updatedAt)}</span>
                         <span>•</span>
-                        <span>{session.messageCount} 条消息</span>
+                        <span>{session.messageCount} messages</span>
                       </div>
                     </div>
                     
@@ -237,7 +237,7 @@ export default function Sidebar({
                     <button
                       onClick={(e) => handleDeleteSession(session.id, e)}
                       className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-600 rounded transition-all"
-                      title="删除聊天"
+                      title="Delete chat"
                     >
                       <TrashIcon className="h-4 w-4" />
                     </button>
@@ -251,8 +251,8 @@ export default function Sidebar({
         {/* 底部信息 */}
         <div className="p-4 border-t border-gray-700">
           <div className="text-xs text-gray-400 text-center">
-            <p>数据保存在本地浏览器</p>
-            <p className="mt-1">共 {sessions.length} 个聊天</p>
+            <p>Data stored in your browser</p>
+            <p className="mt-1">Total {sessions.length} chats</p>
           </div>
         </div>
       </div>
